@@ -1,0 +1,201 @@
+<html>
+
+
+<head>
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+   <title>{{ title }}</title>
+</head>
+
+
+<body>
+
+   {% from "receiptContainer.html" import receiptContainer with context %}
+
+   <script>
+
+       var activeReceipt;
+       var userTime;
+       var userMetric;
+       var userLength;
+
+       function storeTime(el) {
+            userTime = el.value;
+       }
+
+       function storeMetric(el) {
+            userMetric = el.value;
+       }
+
+       function storeLength(el) {
+        userLength = el.value;
+       }
+
+       function submit() {
+        showContent(userMetric, userTime, userLength);
+       }
+       function showContent(metric, timespan, length) {
+
+           //get metric user chose
+           var selectedMetric = metric;
+           var selectedTime = timespan;
+           if (length == 10) {
+            var selectedLength = '_ten';
+           } else if (length == 20) {
+            var selectedLength = '_twenty';
+           } else {
+            var selectedLength = '_fifty';
+           }
+
+           var allReceipts = document.querySelectorAll(".receiptContainer");
+
+           // hide receipts not chosen
+           for (let i = 0; i < allReceipts.length; i++) {
+               allReceipts[i].style.display = "none";
+           }
+           
+           if(selectedMetric == "top tracks") {
+               document.getElementById(selectedTime + selectedLength).style.display = 'inline-block'
+           } else {
+               document.getElementById(selectedTime + "_artists" + selectedLength).style.display = 'inline-block'
+           }
+           
+           // download button
+           document.getElementById('downloadPicButton').style.display = 'inline-block'
+           activeReceipt = selectedTime + (selectedMetric == "top tracks" ? "" : "_artists");
+       }
+ 
+       function hiddenClone(element) {
+           // clone to download receipt
+           var clone = element.cloneNode(true);
+
+           // positioned outside view
+           var style = clone.style;
+           style.position = "relative";
+           style.top = window.innerHeight + "px";
+           style.left = 0;
+          
+           document.body.appendChild(clone);
+           return clone;
+       }
+
+
+       $(document).ready(function () {
+
+
+           // Global variable
+           var element = $(".receiptContainerWrapper");
+
+
+           // Global variable
+           var getCanvas;
+
+
+           $("#downloadPicButton").on('click', function () {
+               var offScreen = document.querySelector(".receiptContainerWrapper");
+               window.scrollTo(0, 0);
+               var clone = hiddenClone(offScreen);
+               // Use clone with htm2canvas and delete clone
+               html2canvas(clone, { scrollY: -window.scrollY }).then((canvas) => {
+                   var dataURL = canvas.toDataURL("image/png", 1.0);
+                   document.body.removeChild(clone);
+                   var link = document.createElement("a");
+                   link.href = dataURL;
+                   link.download = `${activeReceipt}.png`;
+                   document.body.appendChild(link);
+                   link.click();
+                   document.body.removeChild(link);
+               });
+           });
+
+
+       });
+
+   </script>
+
+   <div>
+       <center>
+           <h1>Spotify Stats</h1>
+           <h2>Top Metric Generator</h2>   
+       </center>
+   </div>
+
+   <div style="width: 100%; height: auto" class="buttons">
+       <center>
+           <div>
+            <!-- submit button -->
+               <button onclick = submit() class = "generatePicButton" value = 'submit'> SUBMIT </button>
+
+            <!-- timespan dropdown -->
+               <label for = 'timespan'> Timespan: </label>
+               <select name="timespan" id="timespan" onchange="storeTime(this)">
+                <option value="" select timespan hidden> Select Timespan</option>
+                <option value="short_term_receipt">Last Month</option>
+                <option value="medium_term_receipt">Last 6 Months</option>
+                <option value="long_term_receipt">Last Year</option>
+            </select>            
+
+               <!-- METRICS DROPDOWN -->
+               <label for="metrics">Metric:</label>
+               <select name = "metric" id = "metrics" onchange = "storeMetric(this)">
+                   <option value="" select metric hidden> Select Metric</option>
+                   <option value = "top tracks"> Top Tracks</option>
+                   <option value = "top artists"> Top Artists</option>
+                   <option value = "top genres"> Top Genres</option>
+               </select>
+               
+               <!-- LENGTH OF LIST -->
+               <label for="length">Length:</label>
+               <select name = "length" id = "length" onchange = "storeLength(this)">
+                   <option value="" select length hidden> Select Length</option>
+                   <option value = "10"> Top 10</option>
+                   <option value = "20"> Top 20</option>
+                   <option value = "50"> Top 50</option>
+               </select>
+           </div>
+       </center>
+   </div>
+
+
+   <div style="width: 100%; height: auto" class="receiptContainerWrapper">
+       <center>
+        <!-- containers for top 10 songs-->
+           {{ receiptContainer(user_display_name, short_term_ten['items'], 'short_term_receipt_ten', 'LAST MONTH', is_artist = False) }}
+           {{ receiptContainer(user_display_name, medium_term_ten['items'], 'medium_term_receipt_ten', 'LAST 6 MONTHS', is_artist = False) }}
+           {{ receiptContainer(user_display_name, long_term_ten['items'], 'long_term_receipt_ten', 'ALL TIME', is_artist = False) }}
+        <!-- containers for top 20 songs-->
+           {{ receiptContainer(user_display_name, short_term_twenty['items'], 'short_term_receipt_twenty', 'LAST MONTH', is_artist = False) }}
+           {{ receiptContainer(user_display_name, medium_term_twenty['items'], 'medium_term_receipt_twenty', 'LAST 6 MONTHS', is_artist = False) }}
+           {{ receiptContainer(user_display_name, long_term_twenty['items'], 'long_term_receipt_twenty', 'ALL TIME', is_artist = False) }}
+        <!-- containers for top 10 songs-->
+           {{ receiptContainer(user_display_name, short_term_fifty['items'], 'short_term_receipt_fifty', 'LAST MONTH', is_artist = False) }}
+           {{ receiptContainer(user_display_name, medium_term_fifty['items'], 'medium_term_receipt_fifty', 'LAST 6 MONTHS', is_artist = False) }}
+           {{ receiptContainer(user_display_name, long_term_fifty['items'], 'long_term_receipt_fifty', 'ALL TIME', is_artist = False) }}
+        <!-- DROPDOWN MENU CODE
+            containers for top 10 artists -->
+           {{receiptContainer(user_display_name, short_term_artists_ten['items'], 'short_term_receipt_artists_ten', 'LAST MONTH', is_artist = True) }}
+           {{receiptContainer(user_display_name, medium_term_artists_ten['items'], 'medium_term_receipt_artists_ten', 'LAST 6 MONTHS', is_artist = True) }}
+           {{receiptContainer(user_display_name, long_term_artists_ten['items'], 'long_term_receipt_artists_ten', 'LAST YEAR', is_artist = True) }}
+        <!-- containers for top 20 artists -->
+           {{receiptContainer(user_display_name, short_term_artists_twenty['items'], 'short_term_receipt_artists_twenty', 'LAST MONTH', is_artist = True) }}
+           {{receiptContainer(user_display_name, medium_term_artists_twenty['items'], 'medium_term_receipt_artists_twenty', 'LAST 6 MONTHS', is_artist = True) }}
+           {{receiptContainer(user_display_name, long_term_artists_twenty['items'], 'long_term_receipt_artists_twenty', 'LAST YEAR', is_artist = True) }}
+        <!-- containers for top 50 artists-->
+           {{receiptContainer(user_display_name, short_term_artists_fifty['items'], 'short_term_receipt_artists_fifty', 'LAST MONTH', is_artist = True) }}
+           {{receiptContainer(user_display_name, medium_term_artists_fifty['items'], 'medium_term_receipt_artists_fifty', 'LAST 6 MONTHS', is_artist = True) }}
+           {{receiptContainer(user_display_name, long_term_artists_fifty['items'], 'long_term_receipt_artists_fifty', 'LAST YEAR', is_artist = True) }}
+
+       </center>
+   </div>
+
+
+   <center>
+       <button class="generatePicButton" id="downloadPicButton">Download</button>
+   </center>
+
+
+</body>
+
+
+</html>

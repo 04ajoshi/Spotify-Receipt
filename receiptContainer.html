@@ -1,0 +1,90 @@
+{% macro receiptContainer(display_name, items, id, duration, is_artist = False) -%}
+<div class="receiptContainer" id="{{ id }}">
+    <h2 class="logo">
+        SPOTIFY RECEIPT
+    </h2>
+    <p class="period">
+        {{ duration }}
+    </p>
+    <p class="date">
+        ORDER #0001 FOR {{ display_name }}
+    </p>
+    <p class="date">
+       {{currentTime|strftime}}
+    </p>
+
+    <table class="tracks">
+        <thead>
+            <tr>
+                <td class="begin">
+                    QTY
+                </td>
+                <td>
+                    ITEM
+                </td>
+                <!-- CHECKING IF ARTIST -->
+                {%- if not is_artist %}
+                <td class="length">
+                    AMT
+                </td>
+                {%- endif %}
+            </tr>
+        </thead>
+        <!-- LOOPING THROUGH FIELD -->
+    {% for item in items %}
+        <tr>
+            <td class="begin">
+                {{ loop.index }}
+            </td>
+            <td class="name">
+                {%- if is_artist -%}
+                    {{ item.name }}
+                {%- else -%}
+                    {{ item.name }} - {{ item.artists[0].name }}
+                {%- endif %}
+            </td>
+            {%- if not is_artist %}
+            <td class="length">
+                {{ item.duration_ms | mmss }}
+            </td>
+            {%- endif %}
+        </tr>
+    {% endfor %}
+        <tr class="total-counts">
+            <td class="begin" colspan="2">
+                ITEM COUNT:
+            </td>
+            <td class="length">
+                {{ items | length }}
+            </td>
+        </tr>
+        {%- if not is_artist %}
+        <tr class="total-counts-end">
+            <td class="begin" colspan="2">
+                TOTAL:
+            </td>
+            <td class="length">
+                {{ (items | sum(attribute='duration_ms')) | mmss }}
+            </td>
+        </tr>
+        {%- endif %}
+    </table>
+    <p class="date">
+        CARD #: **** **** **** {{ currentTime.tm_year }}
+    </p>
+    <p class="date">
+        AUTH CODE: 123421
+    </p>
+    <p class="date">
+        CARDHOLDER: {{ display_name }}
+    </p>
+    <div class="thanks">
+        <p>
+            THANK YOU FOR VISITING!
+        </p>
+        <img style="width: 80%" src="{{ url_for('static', filename='barcode.png') }}">
+</div>
+</div>
+
+
+{%- endmacro %}
