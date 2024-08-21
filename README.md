@@ -1,4 +1,6 @@
 # Spotify-Receipt
 Website to show spotify stats
 
-04ajoshi.pythonanywhere.com
+[Spotify Receipt] (04ajoshi.pythonanywhere.com)
+
+This site was built using [pythonanywhere] (https://www.pythonanywhere.com/)
