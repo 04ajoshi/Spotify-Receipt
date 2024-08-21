@@ -59,8 +59,8 @@ def get_token():
     if not token_info: 
         raise "exception"
     now = int(time.time())
-    is_expired = token_info['expires_at'] - now < 60 
-    if (is_expired): 
+    expire_time = token_info['expires_at'] - now < 60 
+    if (expire_time): 
         sp_oauth = create_spotify_oauth()
         token_info = sp_oauth.refresh_access_token(token_info['refresh_token'])
     return token_info 
@@ -199,9 +199,9 @@ def getTracks():
       
 
 
-@app.template_filter('strftime')
+@app.template_filter('time_display')
 def _jinja2_filter_datetime(date, fmt=None):
-    return strftime("%a, %d %b %Y", date)
+    return time_display("%a, %d %b %Y", date)
 
 @app.template_filter('mmss')
 def _jinja2_filter_miliseconds(time, fmt=None):
